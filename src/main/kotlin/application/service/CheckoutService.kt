@@ -1,11 +1,6 @@
 package com.checkout.application.service
 
-import com.checkout.domain.model.Checkout
-import com.checkout.domain.model.DomainError
-import com.checkout.domain.model.Money
-import com.checkout.domain.model.PricingRule
-import com.checkout.domain.model.Result
-import com.checkout.domain.model.Sku
+import com.checkout.domain.model.*
 import com.checkout.domain.port.PricingRuleRepository
 
 class CheckoutService(private val pricingRuleRepository: PricingRuleRepository) {

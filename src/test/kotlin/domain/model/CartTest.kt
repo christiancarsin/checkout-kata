@@ -25,7 +25,7 @@ class CartTest {
 
     @Test
     fun `add item to cart`() {
-        val cart = Cart().addItem(Sku.of('A'))
+        val cart = Cart().addItem(Sku.of('A')).getOrThrow()
 
         assertThat(cart.getQuantity(Sku.of('A'))).isEqualTo(1)
         assertThat(cart.totalItems()).isEqualTo(1)
@@ -33,7 +33,7 @@ class CartTest {
 
     @Test
     fun `add multiple quantities of same item`() {
-        val cart = Cart().addItem(Sku.of('A'), 3)
+        val cart = Cart().addItem(Sku.of('A'), 3).getOrThrow()
 
         assertThat(cart.getQuantity(Sku.of('A'))).isEqualTo(3)
         assertThat(cart.totalItems()).isEqualTo(3)
@@ -41,7 +41,7 @@ class CartTest {
 
     @Test
     fun `cart calculates total with pricing rules`() {
-        val cart = Cart().addItem(Sku.of('A'), 3)
+        val cart = Cart().addItem(Sku.of('A'), 3).getOrThrow()
 
         val total = cart.calculateTotal(pricingRules)
 
@@ -50,14 +50,14 @@ class CartTest {
 
     @Test
     fun `cart item count`() {
-        val cart = Cart().addItem(Sku.of('A'), 2).addItem(Sku.of('B'), 3)
+        val cart = Cart().addItem(Sku.of('A'), 2).getOrThrow().addItem(Sku.of('B'), 3).getOrThrow()
 
         assertThat(cart.totalItems()).isEqualTo(5)
     }
 
     @Test
     fun `cart returns items grouped by sku`() {
-        val cart = Cart().addItem(Sku.of('A'), 2).addItem(Sku.of('B'), 1)
+        val cart = Cart().addItem(Sku.of('A'), 2).getOrThrow().addItem(Sku.of('B'), 1).getOrThrow()
 
         val items = cart.getItems()
 
@@ -75,34 +75,32 @@ class CartTest {
 
     @Test
     fun `cart not empty after adding item`() {
-        val cart = Cart().addItem(Sku.of('A'))
+        val cart = Cart().addItem(Sku.of('A')).getOrThrow()
 
         assertThat(cart.isEmpty()).isFalse()
     }
 
     @Test
-    fun `throw exception for negative quantity`() {
-        assertThatThrownBy { Cart().addItem(Sku.of('A'), -1) }
-            .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessageContaining("positive")
+    fun `returns failure for negative quantity`() {
+        val result = Cart().addItem(Sku.of('A'), -1)
+
+        assertThat(result).isEqualTo(Result.Failure(DomainError.InvalidQuantity(-1)))
     }
 
     @Test
-    fun `throw exception for zero quantity`() {
-        assertThatThrownBy { Cart().addItem(Sku.of('A'), 0) }
-            .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessageContaining("positive")
+    fun `returns failure for zero quantity`() {
+        val result = Cart().addItem(Sku.of('A'), 0)
+
+        assertThat(result).isEqualTo(Result.Failure(DomainError.InvalidQuantity(0)))
     }
 
     @Test
     fun `calculateTotal returns failure for unknown SKU`() {
-        val cart = Cart().addItem(Sku.of('Z'))
+        val cart = Cart().addItem(Sku.of('Z')).getOrThrow()
         val emptyRules = emptyMap<Sku, PricingRule>()
 
         val result = cart.calculateTotal(emptyRules)
 
-        assertThat(result).isInstanceOf(Result.Failure::class.java)
-        val failure = result as Result.Failure<*>
-        assertThat(failure.error).isInstanceOf(DomainError.UnknownSku::class.java)
+        assertThat(result).isEqualTo(Result.Failure(DomainError.UnknownSku(Sku.of('Z'))))
     }
 }

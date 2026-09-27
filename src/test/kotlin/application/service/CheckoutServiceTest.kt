@@ -104,8 +104,6 @@ class CheckoutServiceTest {
 
         val result = session.scan('Z')
 
-        assertThat(result).isInstanceOf(Result.Failure::class.java)
-        val failure = result as Result.Failure<*>
-        assertThat(failure.error).isInstanceOf(DomainError.UnknownSku::class.java)
+        assertThat(result).isEqualTo(Result.Failure(DomainError.UnknownSku(Sku.of('Z'))))
     }
 }

@@ -5,7 +5,17 @@ class Checkout(private val pricingRules: Map<Sku, PricingRule>) {
     private var cart: Cart = Cart()
 
     fun scan(sku: Sku): Result<Checkout> {
-        return cart.addItem(sku).let { newCart ->
+        return scan(sku, 1)
+    }
+
+    fun scan(sku: Sku, quantity: Int): Result<Checkout> {
+        if (quantity <= 0) {
+            return Result.Failure(DomainError.InvalidQuantity(quantity))
+        }
+        if (sku !in pricingRules) {
+            return Result.Failure(DomainError.UnknownSku(sku))
+        }
+        return cart.addItem(sku, quantity).flatMap { newCart ->
             cart = newCart
             Result.Success(this)
         }
