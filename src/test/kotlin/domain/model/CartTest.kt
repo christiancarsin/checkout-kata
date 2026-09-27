@@ -20,7 +20,7 @@ class CartTest {
 
         val total = cart.calculateTotal(pricingRules)
 
-        assertThat(total.toPence()).isZero()
+        assertThat(total.getOrThrow().toPence()).isZero()
     }
 
     @Test
@@ -45,7 +45,7 @@ class CartTest {
 
         val total = cart.calculateTotal(pricingRules)
 
-        assertThat(total.toPence()).isEqualTo(130)
+        assertThat(total.getOrThrow().toPence()).isEqualTo(130)
     }
 
     @Test
@@ -92,5 +92,17 @@ class CartTest {
         assertThatThrownBy { Cart().addItem(Sku.of('A'), 0) }
             .isInstanceOf(IllegalArgumentException::class.java)
             .hasMessageContaining("positive")
+    }
+
+    @Test
+    fun `calculateTotal returns failure for unknown SKU`() {
+        val cart = Cart().addItem(Sku.of('Z'))
+        val emptyRules = emptyMap<Sku, PricingRule>()
+
+        val result = cart.calculateTotal(emptyRules)
+
+        assertThat(result).isInstanceOf(Result.Failure::class.java)
+        val failure = result as Result.Failure<*>
+        assertThat(failure.error).isInstanceOf(DomainError.UnknownSku::class.java)
     }
 }

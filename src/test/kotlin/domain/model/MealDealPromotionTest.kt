@@ -12,16 +12,16 @@ class MealDealPromotionTest {
 
     @Test
     fun `calculate price when both items present for meal deal`() {
-        val priceD = promoD.calculatePrice(1, unitPriceD)
-        val priceE = promoE.calculatePrice(1, unitPriceE)
+        val priceD = promoD.calculatePrice(1, unitPriceD, 1)
+        val priceE = promoE.calculatePrice(1, unitPriceE, 1)
 
-        assertThat(priceD.toPence()).isEqualTo(150)
-        assertThat(priceE.toPence()).isEqualTo(200)
+        assertThat(priceD.toPence()).isEqualTo(300)
+        assertThat(priceE.toPence()).isEqualTo(300)
     }
 
     @Test
     fun `calculate price when only one meal deal item present`() {
-        val price = promoD.calculatePrice(1, unitPriceD)
+        val price = promoD.calculatePrice(1, unitPriceD, 0)
 
         assertThat(price.toPence()).isEqualTo(150)
     }

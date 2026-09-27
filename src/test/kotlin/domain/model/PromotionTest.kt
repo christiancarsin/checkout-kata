@@ -49,4 +49,28 @@ class PromotionTest {
 
         assertThat(price.toPence()).isZero()
     }
+
+    @Test
+    fun `meal deal calculates price with partner quantity`() {
+        val mealDeal = Promotion.MealDeal(Sku.of('E'), Money.pence(300))
+        val price = mealDeal.calculatePrice(1, Money.pence(150), 1)
+
+        assertThat(price.toPence()).isEqualTo(300)
+    }
+
+    @Test
+    fun `meal deal calculates price with extra items`() {
+        val mealDeal = Promotion.MealDeal(Sku.of('E'), Money.pence(300))
+        val price = mealDeal.calculatePrice(2, Money.pence(150), 1)
+
+        assertThat(price.toPence()).isEqualTo(450)
+    }
+
+    @Test
+    fun `meal deal uses unit price when no partner`() {
+        val mealDeal = Promotion.MealDeal(Sku.of('E'), Money.pence(300))
+        val price = mealDeal.calculatePrice(2, Money.pence(150), 0)
+
+        assertThat(price.toPence()).isEqualTo(300)
+    }
 }
