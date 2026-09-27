@@ -1,0 +1,2 @@
+# checkout-kata
+Checkout kata
