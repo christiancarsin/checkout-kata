@@ -4,10 +4,16 @@
 A checkout system kata implemented in Kotlin with Java 25, following TDD practices with emphasis on domain-driven design, cohesion, and modularity.
 
 ## Technology Stack
-- **Language**: Kotlin (latest stable)
+- **Language**: Kotlin 2.3 (JVM target 25)
 - **Runtime**: Java 25
-- **Testing**: JUnit 5, MockK, AssertJ
-- **Architecture**: Simple layered architecture (domain, application)
+- **Build**: Maven (`pom.xml`)
+- **Testing**: JUnit 5, AssertJ
+
+- **Architecture**: Simple layered architecture (domain, application) with a port/adapter split for persistence
+
+## Commands
+- `mvn test` — run the unit test suite
+- `mvn verify` — run all quality gates (tests, packaging)
 
 ## Core Principles
 
@@ -33,49 +39,61 @@ A checkout system kata implemented in Kotlin with Java 25, following TDD practic
 ## Project Structure
 ```
 src/
-├── main/kotlin/
-│   ├── domain/           # Core domain models (entities, value objects, domain services)
+├── main/kotlin/com/checkout/
+│   ├── domain/
 │   │   ├── model/        # Domain entities and value objects
-│   │   └── service/      # Domain services (cross-entity logic)
-│   └── application/      # Use cases / application services
-│       └── service/      # Application services (orchestration)
-└── test/kotlin/          # Tests mirroring main structure
+│   │   └── port/         # Outbound ports (PricingRuleRepository)
+│   ├── application/
+│   │   └── service/      # Application services (orchestration only)
+│   └── adapter/
+│       └── repository/   # Port implementations (in-memory pricing rules)
+└── test/kotlin/com/checkout/   # Tests mirror the main structure
+
 ```
+Directory names mirror the package declaration (`com.checkout.*`).
 
 ## Coding Standards
 
 ### Kotlin Best Practices
 - Use `data class` for value objects, `class` for entities with identity
-- Prefer `val` over `var` (immutability by default)
+- Prefer `val` over `var` (immutability by default); return new instances instead of mutating
 - Use sealed classes for closed hierarchies (e.g., Result types)
 - Extension functions for domain behavior that doesn't require state
 - Coroutines for async operations
 - Explicit nullability (`Type?` vs `Type`)
+- Properties instead of Java-style getters (`cart.items`, not `cart.getItems()`)
 
 ### Domain Model Rules
 ```kotlin
 // GOOD: Logic in domain model
-data class Cart(private val items: List<CartItem> = emptyList()) {
-    fun addItem(product: Product, quantity: Int): Cart {
-        require(quantity > 0) { "Quantity must be positive" }
-        // ... business logic here
+data class Cart(private val contents: Map<Sku, Int> = emptyMap()) {
+    init {
+        require(contents.values.all { it > 0 }) { "Cart quantities must be positive" }
     }
-    
-    fun calculateTotal(): Money = items.sumOf { it.subtotal }
+
+    operator fun get(sku: Sku): Int = contents.getOrDefault(sku, 0)
+
+    fun addItem(sku: Sku, quantity: Int = 1): Result<Cart> = ...
+    fun calculateTotal(pricingRules: Map<Sku, PricingRule>): Result<Money> = ...
 }
 
 // AVOID: Anemic model + service with logic
 class CartService {
-    fun addItem(cart: Cart, product: Product, quantity: Int): Cart { ... }
+    fun addItem(cart: Cart, sku: Sku, quantity: Int): Cart { ... }
 }
 ```
+- Invariants belong in `init { require(...) }` so every construction path is validated
+- Fail fast with `require` at construction/configuration time, return `Result.Failure`
+  for errors that callers are expected to handle at runtime
 
 ### Testing Standards
 - Test file naming: `*Test.kt` for unit, `*IntegrationTest.kt` for integration
 - Use `given/when/then` or `arrange/act/assert` structure
 - Test behavior, not implementation
 - Domain tests: pure unit tests, no mocks needed
-- Application tests: mock ports, test orchestration
+- Application tests: stub the ports (anonymous implementations), test orchestration
+- Assert on exact expected values - an assertion must fail when the behaviour breaks
+- Cover order/edge variants (e.g. same total for every scan order)
 
 ## Development Workflow
 
@@ -92,9 +110,9 @@ class CartService {
 4. Build application services around domain
 
 ## Quality Gates
-- All tests must pass
-- No compiler warnings
-- Static analysis: detekt (Kotlin linter)
+Run `mvn verify` before considering work done. It enforces:
+- **Tests**: all tests must pass (surefire runs `**/*Test`)
+- **No compiler warnings**: the Kotlin compiler runs with `-Werror`
 
 ## Common Patterns
 
@@ -109,3 +127,15 @@ sealed interface Result<out T> {
 
 ## Decision Log
 - **2026-09-27**: Project initialized with Kotlin/Java 25, TDD, domain-centric architecture
+- **2026-09-27**: Quality gates made executable: fixed surefire includes (tests were silently
+  not running under `mvn test`), added `-Werror`
+- **2026-09-27**: Sources moved to `src/*/kotlin/com/checkout/**` so directories match packages
+- **2026-09-27**: Promotions split into `priceLine` (single item line) and `priceBundle`
+  (cross-SKU); `Cart.calculateTotal` prices bundles first, then remaining lines, so totals
+  no longer depend on scan order
+- **2026-09-27**: `Checkout` and `CheckoutSession` are immutable - `scan` returns a new instance
+- **2026-09-27**: Invalid SKU input returns `Result.Failure(InvalidSku)` instead of throwing
+- **2026-09-27**: `Money` is non-negative, `pounds()` rounds instead of truncating,
+  `toString()` uses `Locale.UK`
+- **2026-09-27**: Removed unused dependencies (MockK, junit-jupiter-params), the dead
+  `checkout-kata.iml`, and empty placeholder directories

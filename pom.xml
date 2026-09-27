@@ -10,11 +10,11 @@
     <packaging>jar</packaging>
 
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>25</maven.compiler.source>
         <maven.compiler.target>25</maven.compiler.target>
         <kotlin.version>2.3.21</kotlin.version>
         <junit.version>5.10.2</junit.version>
-        <mockk.version>1.13.12</mockk.version>
         <assertj.version>3.24.2</assertj.version>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
     </properties>
@@ -40,20 +40,6 @@
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-params</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <!-- MockK -->
-        <dependency>
-            <groupId>io.mockk</groupId>
-            <artifactId>mockk</artifactId>
-            <version>${mockk.version}</version>
-            <scope>test</scope>
-        </dependency>
 
         <!-- AssertJ -->
         <dependency>
@@ -62,6 +48,8 @@
             <version>${assertj.version}</version>
             <scope>test</scope>
         </dependency>
+
+        
     </dependencies>
 
     <build>
@@ -90,18 +78,17 @@
                 </executions>
                 <configuration>
                     <jvmTarget>25</jvmTarget>
+                    <args>
+                        <arg>-Werror</arg>
+                    </args>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.2</version>
-                <configuration>
-                    <includes>
-                        <include>**/*Test.kt</include>
-                    </includes>
-                </configuration>
             </plugin>
+            
         </plugins>
     </build>
 </project>
