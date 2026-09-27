@@ -24,8 +24,6 @@ class CheckoutService(private val pricingRuleRepository: PricingRuleRepository) 
 
         fun scan(skuChar: Char): Result<CheckoutSession> = checkout.scan(skuChar).map { CheckoutSession(it) }
 
-        fun scan(skuString: String): Result<CheckoutSession> = checkout.scan(skuString).map { CheckoutSession(it) }
-
         fun total(): Result<Money> = checkout.total()
     }
 }
