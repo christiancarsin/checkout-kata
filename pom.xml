@@ -12,7 +12,7 @@
     <properties>
         <maven.compiler.source>25</maven.compiler.source>
         <maven.compiler.target>25</maven.compiler.target>
-        <kotlin.version>2.0.0</kotlin.version>
+        <kotlin.version>2.3.21</kotlin.version>
         <junit.version>5.10.2</junit.version>
         <mockk.version>1.13.12</mockk.version>
         <assertj.version>3.24.2</assertj.version>
@@ -23,7 +23,7 @@
         <!-- Kotlin Stdlib -->
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-stdlib-jdk8</artifactId>
+            <artifactId>kotlin-stdlib</artifactId>
             <version>${kotlin.version}</version>
         </dependency>
 

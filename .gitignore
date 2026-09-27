@@ -7,6 +7,7 @@ out/
 
 ### Kotlin ###
 .kotlin
+.class
 
 ### Eclipse ###
 .apt_generated
@@ -32,3 +33,5 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+target/
